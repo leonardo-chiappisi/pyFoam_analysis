@@ -12,8 +12,8 @@ import statistics
 
 
 
-path_data = '11 - SDS 1_1/Images brutes'
-path_result = '11 - SDS 1_1/Image corrigees'
+path_data = 'U:\\Uni\\PSCM Coordinator\\HDR\plots\\Foam\\data_analysis\\10 - SDS 2.5_1\\image'
+path_result = 'U:\\Uni\\PSCM Coordinator\\HDR\plots\\Foam\\data_analysis\\10 - SDS 2.5_1\\image\\corrected'
 
 for filename in sorted(os.listdir(path_data)):
     if filename.endswith(".jpg") or filename.endswith(".png"):

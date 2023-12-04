@@ -9,12 +9,17 @@ import pandas as pd
 import numpy as np
 # from PIL import Image
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import matplotlib.gridspec as gridspec
 import cv2   #install opencv-python
 from skimage.draw import line
 from lmfit import minimize, Parameters, fit_report
 import random, math
-import matplotlib.gridspec as gridspec
+
 import os
+import gc
+import glob
+
 
 def resize(img):
     img_resized = cv2.resize(img, None, fx=1.41, fy=1.0)
@@ -35,8 +40,10 @@ def load_and_convert_image(input_image,ROI):
     '''
     # Reading image and converting it to gray scale
     # font = cv2.FONT_HERSHEY_COMPLEX
-    img = cv2.imread(input_image)[ROI[0][0]:ROI[0][1],ROI[1][0]:ROI[1][1]]
-
+    # print(input_image)
+    img = cv2.imread(input_image)
+    # print(img)
+    img = img[ROI[0][0]:ROI[0][1],ROI[1][0]:ROI[1][1]]
     img = resize(img)
 
     # print('image loaded and resized')
@@ -57,8 +64,8 @@ def load_and_convert_image(input_image,ROI):
     # print('threshold calculated')
     # th2 = cv2.bitwise_not(th2)
     plt.axis('off')
-    plt.imshow(th2, cmap='gray')
-    cv2.imwrite('th2.png', th2)
+    # plt.imshow(th2, cmap='gray')
+    # cv2.imwrite('th2.png', th2)
     # plt.savefig('th2.jpg')
     # th2 = cv2.bilateralFilter(th2, d=5, )
     contours, hierarchy = cv2.findContours(th2,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
@@ -72,12 +79,19 @@ def load_and_convert_image(input_image,ROI):
     im_adapt = th2
     # im_adapt = cv2.bitwise_not(th2)
     # im_adapt = cv2.bitwise_not(im_adapt)
-    cv2.imwrite('th2.png', im_adapt)
+    # cv2.imwrite('th2.png', im_adapt)
     # cv2.waitKey(0)
 
     return gray_img, canvas, im_adapt
 
-
+# def fill_images_with_colors(bin_img, min_r, max_r):
+#     contours = find_countours(img_bin_no_borders)
+#     #     print('contours found')
+#         radii, areas, perimeters, centers_of_mass = analyse_contours(contours, min_area=50)  # in pixel
+    
+    
+    
+#     return None
 
 ##### function to analyse the contours and extract the area of the bubbles (and so the radius)
 def analyse_contours(contours, min_area=10):
@@ -293,11 +307,12 @@ def calc_PB_border_radius(N, contours, img_gray, bin_img, filename, path, l):
     cols = int(np.ceil((N+1)/rows)) if rows > 0 else 1
     gs = gridspec.GridSpec(rows, cols)
     
-    fig = plt.figure(figsize=(cols*3.5, rows*3.5))
-    fig2 = plt.figure(figsize=(cols*3.5, rows*3.5))
+    fig = plt.figure(figsize=(cols*2.5, rows*2.5))
+    fig2 = plt.figure(figsize=(cols*2.5, rows*2.5))
     
     _ = 0
     __= -1
+    ax = None
     while _ < N and __ < maxiter:
         # print(20*'*', '\n', _, __,  '\n', 20*'*')
         __ += 1
@@ -379,7 +394,10 @@ def calc_PB_border_radius(N, contours, img_gray, bin_img, filename, path, l):
             None
     PB_calculations = _        
     gs.tight_layout(fig)
+    
     fig.savefig(os.path.join(path, '{}_PB_section.pdf'.format(filename)))
+    # plt.clf()
+    plt.close('fig')
     
     ax = fig2.add_subplot(gs[_+1])
     ax.hist(widths_bin, 10, label='bin, mean = {:.1f} pixel'.format(np.average(widths_bin)), alpha=0.5)
@@ -387,12 +405,41 @@ def calc_PB_border_radius(N, contours, img_gray, bin_img, filename, path, l):
     
     gs.tight_layout(fig2)
     fig2.savefig(os.path.join(path, '{}_PB_fits.pdf'.format(filename)))
-    plt.close('all')    
-    
+    plt.clf()
+    plt.close('fig2')    
+
+    plt.close("all")
     
     width_bin_average, width_bin_std = np.average(widths_bin)/2, np.std(widths_bin)/2
     width_gauss_average, width_gauss_std = np.average(widths_gauss)/2, np.std(widths_gauss)/2
     
     del fig, fig2
+    gc.collect()
+    
     return width_bin_average, width_bin_std, width_gauss_average, width_gauss_std, PB_calculations
 
+def plot_region_of_interest(path,ROI,index):
+    # print(glob.glob(os.path.join(path,'*.png')))
+    img_ROI = cv2.imread(glob.glob(os.path.join(path,'*.png'))[index])
+    fig, ax = plt.subplots()
+    
+    # plt.axis('off')
+    ax.imshow(img_ROI, cmap=('gray'))
+
+
+    x1 = ROI[0][0]
+    x2 = ROI[0][1] if ROI[0][1] > 0 else np.shape(img_ROI)[0]+ROI[0][1]
+    y1 = ROI[1][0]
+    y2 = ROI[1][1] if ROI[1][1] > 0 else np.shape(img_ROI)[1]+ROI[1][1]
+    
+    
+    rect = patches.Rectangle((y1, x1), y2-y1, x2-x1, linewidth=1, edgecolor='r', facecolor='none')
+    ax.add_patch(rect)
+    
+    plt.show()
+    
+    
+    
+    
+    
+    # img = img[ROI[0][0]:ROI[0][1],ROI[1][0]:ROI[1][1]]
