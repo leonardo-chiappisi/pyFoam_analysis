@@ -45,4 +45,5 @@ def plot_results(data, path):
     plt.show()
     
     
-plot_results(data, path)
+if __name__ == "__main__":
+    plot_results(data, path)
