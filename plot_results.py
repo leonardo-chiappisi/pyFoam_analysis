@@ -10,10 +10,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 
-path = path_data = ('images/')
-data = pd.read_csv(os.path.join(path,'mean_data.csv'))
-# print(data)
-
 def plot_results(data, path):
     fig, axs = plt.subplots(3,2,sharex=True, figsize=(7,5))
     axs[0,0].scatter(data.index, data['N_bubbles'])
@@ -46,4 +42,6 @@ def plot_results(data, path):
     
     
 if __name__ == "__main__":
+    path = path_data = ('images/')
+    data = pd.read_csv(os.path.join(path,'mean_data.csv'))
     plot_results(data, path)
