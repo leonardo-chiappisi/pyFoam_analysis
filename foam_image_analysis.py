@@ -29,7 +29,7 @@ except:
     
     
 # path_data = (r'U:\\Uni\\PSCM Coordinator\\HDR\plots\\Foam\\data_analysis\\Image corrigées')
-path_data = (r'9-10-1762/bottom_2')
+path_data = (r'data')
 
 
 pixel_size= 0.002668 # size of the pixel in mm 
