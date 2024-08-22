@@ -3,6 +3,7 @@
 Created on Mon Feb  6 16:59:13 2023
 
 @author: Leonardo Chiappisi (Institut Laue-Langevin)
+v1.0: 2024.08.22
 """
 
 import pandas as pd
@@ -17,13 +18,21 @@ from plot_results import plot_results
 from pathlib import Path, PurePath
 import gc
 import sys
+import datetime as dt
 
-
+t0 = '10-Dec-23 17:37:34'
+t0 = dt.datetime.strptime(t0, '%d-%b-%y   %H:%M:%S')
+try:
+    rundex = pd.read_excel('index_234_d33_exp_9-10-1786_400000-406553.xlsx')
+except:
+    print('could not load excel rundex file')
+    
+    
 # path_data = (r'U:\\Uni\\PSCM Coordinator\\HDR\plots\\Foam\\data_analysis\\Image corrigées')
-path_data = (r'9-10-1762/bottom')
+path_data = (r'9-10-1762/bottom_2')
 
 
-pixel_size= 0.00567 # size of the pixel in mm 
+pixel_size= 0.002668 # size of the pixel in mm 
 
 region_of_interest = ((100,3500),(50,-300)) 
 
@@ -50,7 +59,19 @@ for filename in sorted(os.listdir(path_data)):
         # if int(filename.split('.')[0]) == 309322:
             print(20*'*' + '\n')
             print(filename)
-        
+            run = int(filename.split('.p')[0])
+            # print(run)
+            # print(rundex['Run #'])
+            try:
+                time = dt.datetime.strptime(rundex.loc[rundex['Run #'] == run]['Start'].values[0], '%d-%b-%y   %H:%M:%S')
+                Age = time-t0
+                Age = Age.total_seconds()/60
+                print(Age)
+            except:
+                Age = 0
+                print('Rundex file missing, Age not defined')
+            
+            
             #creates a pd.dataframe where all the parameters of a given image are stored
             average_params = pd.DataFrame()  
             #return the image in gray scale, an empty canvas, and the binarized image, corrected for spots and other noise.
@@ -123,10 +144,11 @@ for filename in sorted(os.listdir(path_data)):
                           'PB_radius_gauss / um': PB_gauss_radius * pixel_size * 1000, #in um
                           'PB_radius_gauss_std / um': PB_gauss_radius_std * pixel_size * 1000, #in um                 
                           'PB_attemps': PB_attemps,
+                          'Age': Age
                           } # %}
         
             
-            all_data_params = all_data_params.append(data_pars, ignore_index=True)
+            all_data_params = pd.concat([all_data_params, pd.DataFrame([data_pars])], ignore_index=True)
             all_data_params.set_index('file', inplace=False).to_csv(os.path.join(path_data, 'mean_data.csv'))
         
     
